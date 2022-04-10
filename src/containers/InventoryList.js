@@ -11,9 +11,7 @@ import {
 import { makeStyles } from "@material-ui/core";
 import ListAltIcon from "@material-ui/icons/ListAlt";
 import styles from "../assets/jss/material-dashboard-react/controllers/commonLayout";
-import moment from "moment";
 import { Button, SnackBarComponent, Table } from "../components";
-import EditIcon from "@mui/icons-material/Edit";
 import { useNavigate } from "react-router-dom";
 import { Grid, Typography } from "@mui/material";
 import AddIcon from "@material-ui/icons/Add";
@@ -21,13 +19,15 @@ import ListIcon from "@mui/icons-material/List";
 import { validateNumber } from "../utils";
 
 export const apiUrl = process.env.REACT_APP_SERVER_URL;
-
+const kgs = process.env.REACT_APP_KGS;
+const grams = process.env.REACT_APP_GRAMS;
 const useStyles = makeStyles(styles);
 
 const InventoryList = (props) => {
   const navigate = useNavigate();
   const classes = useStyles();
   const tableRef = React.createRef();
+  const [openAddInventoryDialog, setOpenAddInventoryDialog] = useState(false);
 
   const [snackBar, setSnackBar] = React.useState({
     show: false,
@@ -52,12 +52,12 @@ const InventoryList = (props) => {
         let newUnit = "";
         let qty = validateNumber(rowData.stock_available);
         let altQty = 0;
-        if (unit === "kgs") {
+        if (unit === kgs) {
           altQty = qty * 1000;
-          newUnit = "grams";
+          newUnit = grams;
         } else {
           altQty = qty / 1000;
-          newUnit = "kgs";
+          newUnit = kgs;
         }
 
         return (
@@ -86,18 +86,6 @@ const InventoryList = (props) => {
     },
   ];
 
-  // useEffect(() => {
-  //   let startDate = moment(new Date()).format("YYYY-MM-DDT00:00:00.000Z");
-  //   let endDate = moment(new Date())
-  //     .endOf("day")
-  //     .format("YYYY-MM-DDT23:59:59.999Z");
-  //   setFilter((filter) => ({
-  //     ...filter,
-  //     created_at_gte: new Date(startDate).toISOString(),
-  //     created_at_lte: new Date(endDate).toISOString(),
-  //   }));
-  // }, []);
-
   const snackBarHandleClose = () => {
     setSnackBar((snackBar) => ({
       ...snackBar,
@@ -119,42 +107,6 @@ const InventoryList = (props) => {
       _sort: orderBy,
     }));
     tableRef.current.onQueryChange();
-  };
-
-  /** Handle Start Date filter change */
-  const handleStartDateChange = (event) => {
-    let startDate = moment(event).format("YYYY-MM-DDT00:00:00.000Z");
-    if (startDate === "Invalid date") {
-      startDate = null;
-      delete filter["created_at_gte"];
-      setFilter((filter) => ({
-        ...filter,
-      }));
-    } else {
-      startDate = new Date(startDate).toISOString();
-      setFilter((filter) => ({
-        ...filter,
-        created_at_gte: startDate,
-      }));
-    }
-  };
-
-  /** Handle End Date filter change */
-  const handleEndDateChange = (event) => {
-    let endDate = moment(event).endOf("day").format("YYYY-MM-DDT23:59:59.999Z");
-    if (endDate === "Invalid date") {
-      endDate = null;
-      delete filter["date_lte"];
-      setFilter((filter) => ({
-        ...filter,
-      }));
-    } else {
-      endDate = new Date(endDate).toISOString();
-      setFilter((filter) => ({
-        ...filter,
-        date_lte: endDate,
-      }));
-    }
   };
 
   const getInventoryData = async (page, pageSize) => {

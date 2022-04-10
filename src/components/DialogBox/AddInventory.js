@@ -22,11 +22,9 @@ import styles from "../../assets/jss/material-dashboard-react/controllers/common
 import { providerForPost } from "../../api";
 
 const apiUrl = process.env.REACT_APP_SERVER_URL;
-const kgs = process.env.REACT_APP_KGS;
-const grams = process.env.REACT_APP_GRAMS;
 
 const useStyles = makeStyles(styles);
-const AddInventoryStock = (props) => {
+const AddInventory = (props) => {
   const [error, setError] = useState({});
   const classes = useStyles();
   const [loading, setLoading] = React.useState(false);
@@ -43,40 +41,30 @@ const AddInventoryStock = (props) => {
     setFormState((formState) => ({
       ...formState,
       unit: props.units && props.units.length ? props.units[0].id : null,
-      unitName: props.units && props.units.length ? props.units[0].name : null,
     }));
     tableRef.current = props.tableRef?.current;
   }, [props]);
 
   const handleSave = async () => {
-    let isValid = false;
-    if (formState.add_stock) {
-      isValid = true;
-    } else {
-      isValid = !validateStock();
-    }
-    if (isValid) {
-      setLoading(true);
-      await providerForPost(
-        apiUrl + "/inventory-stock-updates",
-        formState,
-        null,
-        {},
-        {}
-      )
-        .then((res) => {
-          setLoading(false);
-          handleClose("success");
-        })
-        .catch((err) => {
-          setLoading(false);
-          handleClose("error");
-        });
-    }
+    setLoading(true);
+    await providerForPost(
+      apiUrl + "/inventory-stock-updates",
+      formState,
+      null,
+      {},
+      {}
+    )
+      .then((res) => {
+        setLoading(false);
+        handleClose("success");
+      })
+      .catch((err) => {
+        setLoading(false);
+        handleClose("error");
+      });
   };
 
   const handleClose = (status) => {
-    setError({});
     setFormState({
       add_stock: true,
       stock_to_update: 1,
@@ -84,55 +72,6 @@ const AddInventoryStock = (props) => {
       cost: 0,
     });
     props.handleClose(status, tableRef);
-  };
-
-  const validateStock = () => {
-    let stock = validateNumber(formState.stock_to_update);
-    let availableStock = validateNumber(props.availableStock);
-    let baseUnit = props.inventory?.unit?.name;
-
-    let unitName = formState.unitName;
-
-    let isStockLess = false;
-    if (baseUnit === kgs) {
-      if (unitName === grams) {
-        if (stock / 1000 > availableStock) {
-          isStockLess = true;
-        }
-      } else {
-        if (stock > availableStock) {
-          isStockLess = true;
-        }
-      }
-    } else {
-      if (unitName === kgs) {
-        if (stock * 1000 > availableStock) {
-          isStockLess = true;
-        }
-      } else {
-        if (stock > availableStock) {
-          isStockLess = true;
-        }
-      }
-    }
-    if (isStockLess) {
-      setError((error) => ({
-        ...error,
-        stock_to_update: [
-          "Stock to use cannot be greater than the available stock",
-        ],
-      }));
-    } else {
-      removeStockError();
-    }
-    return isStockLess;
-  };
-
-  const removeStockError = () => {
-    delete error["stock_to_update"];
-    setError((error) => ({
-      ...error,
-    }));
   };
 
   return (
@@ -155,7 +94,6 @@ const AddInventoryStock = (props) => {
                     sx={{}}
                     checked={formState["add_stock"] ? true : false}
                     onChange={(event) => {
-                      removeStockError();
                       setFormState((formState) => ({
                         ...formState,
                         add_stock: event.target.checked,
@@ -188,7 +126,10 @@ const AddInventoryStock = (props) => {
                       stock_to_update: ["Invalid number"],
                     }));
                   } else {
-                    removeStockError();
+                    delete error["stock_to_update"];
+                    setError((error) => ({
+                      ...error,
+                    }));
                   }
                   setFormState((formState) => ({
                     ...formState,
@@ -232,28 +173,19 @@ const AddInventoryStock = (props) => {
                   labelId="select-for-unit"
                   id="select_unit"
                   value={formState.unit}
-                  onChange={(event) => {
-                    let unit = props.units.filter(
-                      (d) => d.id === event.target.value
-                    );
-                    if (unit && unit[0] && unit[0].name) {
-                      removeStockError();
-                      setFormState((formState) => ({
-                        ...formState,
-                        unit: event.target.value,
-                        unitName: unit[0].name,
-                      }));
-                    }
-                  }}
+                  onChange={(event) =>
+                    setFormState((formState) => ({
+                      ...formState,
+                      unit: event.target.value,
+                    }))
+                  }
                   label="Unit"
                   inputProps={{
                     fullWidth: true,
                   }}
                 >
                   {props.units.map((u) => (
-                    <MenuItem value={u.id} name={u.name}>
-                      {u.name}
-                    </MenuItem>
+                    <MenuItem value={u.id}>{u.name}</MenuItem>
                   ))}
                 </Select>
               </FormControl>
@@ -312,12 +244,7 @@ const AddInventoryStock = (props) => {
               justifyContent: "center",
             }}
           >
-            <Button
-              onClick={() => {
-                handleClose(null);
-              }}
-              disabled={loading}
-            >
+            <Button onClick={() => handleClose(null)} disabled={loading}>
               Cancel
             </Button>
             <Button
@@ -347,4 +274,4 @@ const AddInventoryStock = (props) => {
   );
 };
 
-export default AddInventoryStock;
+export default AddInventory;

@@ -34,6 +34,7 @@ import AddIcon from "@material-ui/icons/Add";
 import SweetAlert from "react-bootstrap-sweetalert";
 import buttonStyles from "../assets/jss/material-dashboard-react/components/buttonStyle.js";
 import classNames from "classnames";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 
 const apiUrl = process.env.REACT_APP_SERVER_URL;
 
@@ -391,6 +392,7 @@ const InventoryStockUpdateList = (props) => {
             inventory={inventoryData}
             units={units}
             tableRef={tableRef}
+            availableStock={stockStatus.totalQuntity}
           />
         </>
       ) : null}
@@ -403,6 +405,17 @@ const InventoryStockUpdateList = (props) => {
 
           <CardBody>
             <GridContainer>
+              <FAB
+                color="primary"
+                align={"start"}
+                size={"small"}
+                toolTip={"Back to design"}
+                onClick={() => {
+                  navigate("/inventory");
+                }}
+              >
+                <ArrowBackIcon />
+              </FAB>
               <GridItem xs={12} sm={12} md={12}>
                 <Typography variant="h5" gutterBottom component="div">
                   {inventoryData?.name ? inventoryData.name : ""}
@@ -651,7 +664,6 @@ const InventoryStockUpdateList = (props) => {
                   title={null}
                   columns={columns}
                   data={async (query) => {
-                    console.log(query);
                     return await getInventoryStockUpdates(
                       query.page + 1,
                       query.pageSize
